@@ -69,6 +69,22 @@ public class BullsAndCows {
         }
     }
 
+    public String check(int[]arr1, int[]arr2){
+        int bulls = 0;
+        int cows = 0;
+        for (int i = 0; i < arr1.length; i++) {
+            for (int j = 0; j < arr2.length; j++) {
+                if (arr1[i] == arr2[j]) {
+                    cows++;
+                }
+                if (arr1[i] == arr2[j] && i == j) {
+                    bulls++;
+                    cows--;
+                }
+            }
+        }
+        return "Result: " + bulls + "bull(s) and " + cows + "cow(s)";
+    }
 
 
 
