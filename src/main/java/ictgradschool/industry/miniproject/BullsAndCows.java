@@ -42,6 +42,21 @@ public class BullsAndCows {
             userGuess[3] = fourDigit % 10;
             int bulls = 0;
             int cows = 0;
+//            using for loop to check how many cows or bulls
+            for (int i = 0; i < userGuess.length; i++) {
+                for (int j = 0; j < sysSecret.length; j++) {
+                    if (userGuess[i] == sysSecret[j]) {
+                        cows++;
+                    }
+                    if (userGuess[i] == sysSecret[j] && i == j) {
+                        bulls++;
+                        cows--;
+                    }
+                }
+            }
+            System.out.printf("Result: %d bull(s) and %d cow(s)%n\n", bulls, cows);
+            System.out.println("-".repeat(3));
+
 
 
 
