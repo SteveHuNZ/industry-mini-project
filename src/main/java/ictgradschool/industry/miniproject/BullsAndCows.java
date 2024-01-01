@@ -56,6 +56,18 @@ public class BullsAndCows {
             }
             System.out.printf("Result: %d bull(s) and %d cow(s)%n\n", bulls, cows);
             System.out.println("-".repeat(3));
+// check if play is win or not , and also if the chance == 0 , the game will be finished
+            if (bulls == 4) {
+                System.out.println("Result: 4 bulls and 0 cows");
+                System.out.println("You win! :)");
+                break;
+            }
+            chance--;
+            if (chance == 0) {
+                System.out.println("Game over. Secret code: " + Arrays.toString(sysSecret));
+            }
+        }
+    }
 
 
 
@@ -64,7 +76,8 @@ public class BullsAndCows {
 
 
 
-            public static void main(String[] argus){
+
+    public static void main(String[] argus){
         start();
     }
 }
