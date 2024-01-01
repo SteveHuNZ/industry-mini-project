@@ -17,11 +17,39 @@ public class BullsAndCows {
             // continue the loop and keep passing random generated number to variable "ran";
             sysSecret[i] = ran;
         }
+//        set the guessing words  for  our opponent :computer
+        for(int i = 0; i < sysGuess.length; i++){
+            int ran;
+            do{
+                ran = random.nextInt(10);
+            }while(!uniqueNum.add(ran));
+            sysGuess[i] = ran;
+        }
+
+//get user's input number '
+        Scanner input = new Scanner(System.in);
+        System.out.println("Please enter your secret code: ");
+        String userSecret = input.nextLine();
+        System.out.println("-".repeat(3));
+        int chance = 7;
+        while(chance > 0){
+            System.out.print("You guess: ");
+            int fourDigit = input.nextInt();
+            int[] userGuess = new int[4];
+            userGuess[0] = fourDigit / 1000;
+            userGuess[1] = fourDigit / 100 % 10;
+            userGuess[2] = fourDigit / 10 % 10;
+            userGuess[3] = fourDigit % 10;
+            int bulls = 0;
+            int cows = 0;
 
 
 
 
-    public static void main(String[] argus){
+
+
+
+            public static void main(String[] argus){
         start();
     }
 }
