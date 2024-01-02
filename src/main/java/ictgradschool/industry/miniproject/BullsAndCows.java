@@ -5,7 +5,7 @@ public class BullsAndCows {
     public static void start(){
         Random random = new Random();
         int[] sysSecret = new int[4];
-        int[] sysGuess = new int[4];
+
         Set<Integer> uniqueNum = new HashSet<>();
         // HashSet can only add unique data;
         for(int i = 0; i < sysSecret.length; i++){
@@ -17,51 +17,66 @@ public class BullsAndCows {
             // continue the loop and keep passing random generated number to variable "ran";
             sysSecret[i] = ran;
         }
-//        set the guessing words  for  our opponent :computer
-        for(int i = 0; i < sysGuess.length; i++){
-            int ran;
-            do{
-                ran = random.nextInt(10);
-            }while(!uniqueNum.add(ran));
-            sysGuess[i] = ran;
-        }
+
 
 //get user's input number '
         Scanner input = new Scanner(System.in);
         System.out.println("Please enter your secret code: ");
-        String userSecret = input.nextLine();
+        String str1 = input.nextLine().trim();
+        int userInputSecret = 0;
+        // verifying sanity for input.
+        if(str1.length() ==4){
+            try{
+                userInputSecret = Integer.parseInt(str1);
+            }catch(NumberFormatException e){
+                System.out.println("Invalid input!");
+            }
+        }
+        int[] userSecret = new int[4];
+        getDigit(userSecret,userInputSecret);
+
+
         System.out.println("-".repeat(3));
         int chance = 7;
         while(chance > 0){
             System.out.print("You guess: ");
-            int fourDigit = input.nextInt();
-            int[] userGuess = new int[4];
-            userGuess[0] = fourDigit / 1000;
-            userGuess[1] = fourDigit / 100 % 10;
-            userGuess[2] = fourDigit / 10 % 10;
-            userGuess[3] = fourDigit % 10;
-            int bulls = 0;
-            int cows = 0;
-//            using for loop to check how many cows or bulls
-            for (int i = 0; i < userGuess.length; i++) {
-                for (int j = 0; j < sysSecret.length; j++) {
-                    if (userGuess[i] == sysSecret[j]) {
-                        cows++;
-                    }
-                    if (userGuess[i] == sysSecret[j] && i == j) {
-                        bulls++;
-                        cows--;
-                    }
+
+            String str2 = input.nextLine().trim();
+            int userInputGuess =0;
+            if(str2.length() ==4){
+                try{
+                    userInputGuess = Integer.parseInt(str1);
+                }catch(NumberFormatException e){
+                    System.out.println("Invalid input!");
+
+
                 }
             }
-            System.out.printf("Result: %d bull(s) and %d cow(s)%n\n", bulls, cows);
-            System.out.println("-".repeat(3));
-// check if play is win or not , and also if the chance == 0 , the game will be finished
-            if (bulls == 4) {
-                System.out.println("Result: 4 bulls and 0 cows");
-                System.out.println("You win! :)");
-                break;
+            int[] userGuess = new int[4];
+            getDigit(userGuess, userInputGuess);
+            // reset the HashSet
+            uniqueNum.clear();
+            int[] sysGuess = new int[4];
+            for(int i = 0; i < sysGuess.length; i++){
+                int ran;
+                do{
+                    ran = random.nextInt(10);
+                }while(!uniqueNum.add(ran));
+                sysGuess[i] = ran;
             }
+            System.out.println(check(userGuess, sysSecret));
+            System.out.println(" ");
+            System.out.print("Computer guess: " );
+            for (int i : sysGuess) {
+                System.out.print(i);
+            }
+            System.out.println("");
+            System.out.println(check(userSecret, sysGuess));
+            System.out.println("-".repeat(3));
+
+
+
+
             chance--;
             if (chance == 0) {
                 System.out.println("Game over. Secret code: " + Arrays.toString(sysSecret));
@@ -69,7 +84,7 @@ public class BullsAndCows {
         }
     }
 
-    public String check(int[]arr1, int[]arr2){
+    public static String check(int[]arr1, int[]arr2){
         int bulls = 0;
         int cows = 0;
         for (int i = 0; i < arr1.length; i++) {
@@ -83,10 +98,20 @@ public class BullsAndCows {
                 }
             }
         }
+        if(bulls == 4) {
+            return "Result: 4 bulls and 0 cows\n" + "You win! :)";
+        }
+
         return "Result: " + bulls + "bull(s) and " + cows + "cow(s)";
     }
 
 
+    public static void getDigit(int[] array, int num){
+        array[0] = num / 1000;
+        array[1] = num / 100 % 10;
+        array[2] = num / 10 % 10;
+        array[3] = num % 10;
+    }
 
 
 
