@@ -2,6 +2,45 @@ package ictgradschool.industry.miniproject;
 import java.util.*;
 
 public class BullsAndCows {
+    public static int[] generateUniqueGuess(Set<String> existSysGuess, Random random){
+        Set<Integer> uniqueNum = new HashSet<>();
+        int[] sysGuess;
+        String sysGuessStr;
+        // Two nested do-while loops are used to avoid duplicated sysGuess.
+        // The first do-while loop can eliminate duplicated single digit in the 4-digit-number.
+        // The second do-while loop can avoid duplicated randomly spawned 4-digit-number.
+        do{
+            sysGuess = new int[4];
+            for (int i = 0; i < sysGuess.length; i++) {
+                int ran;
+                do {
+                    ran = random.nextInt(10);
+                } while (!uniqueNum.add(ran));
+                sysGuess[i] = ran;
+            }
+            sysGuessStr = arrayToString(sysGuess);
+        }while(existSysGuess.contains(sysGuessStr));
+        existSysGuess.add(sysGuessStr);
+        return sysGuess;
+    }
+    public static int getUserInput(Scanner input, String prompt){
+        int userInput;
+        while (true) {
+            System.out.println(prompt);
+            String str2 = input.nextLine().trim();
+            if (str2.length() == 4) {
+                try {
+                    userInput = Integer.parseInt(str2);
+                    break;
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid input!(4 digit numbers)Try again!");
+                }
+            } else {
+                System.out.println("Invalid length!(4 digit numbers)Try again!");
+            }
+        }
+        return userInput;
+    }
     public static void start(){
         Random random = new Random();
         int[] sysSecret = new int[4];
@@ -19,126 +58,55 @@ public class BullsAndCows {
         Scanner input = new Scanner(System.in);
         System.out.print("Please select your opponent(a.easy AI / b.medium AI): ");
         String mode = input.nextLine().trim();
-        int userInputSecret = 0;
-        while (true) {
-            System.out.println("Please enter your secret code: ");
-            String str1 = input.nextLine().trim();
-            if (str1.length() == 4) {
-                try {
-                    userInputSecret = Integer.parseInt(str1);
-                    break;
-                } catch (NumberFormatException e) {
-                    System.out.println("Invalid input!(4 digit numbers)Try again!");
-                }
-            } else {
-                System.out.println("Invalid length!(4 digit numbers)Try again!");
-            }
-        }
+        int userInputSecret = getUserInput(input, "Please enter your secret code: ");
+        int[] userSecret = new int[4];
+        getDigit(userSecret, userInputSecret);
+        System.out.println("-".repeat(3));
+
+
         if(mode.equalsIgnoreCase("a")) {
-
+            Set<String> existSysGuess = new HashSet<>();
             // verifying sanity for input.
-
-            int[] userSecret = new int[4];
-            getDigit(userSecret, userInputSecret);
-            System.out.println("-".repeat(3));
             int chance = 7;
             while (chance > 0) {
-                int userInputGuess = 0;
-                while (true) {
-                    System.out.print("You guess(" + chance + " chances remaining): ");
-                    String str2 = input.nextLine().trim();
-                    if (str2.length() == 4) {
-                        try {
-                            userInputGuess = Integer.parseInt(str2);
-                            break;
-                        } catch (NumberFormatException e) {
-                            System.out.println("Invalid input!(4 digit numbers)Try again!");
-                        }
-                    } else {
-                        System.out.println("Invalid length!(4 digit numbers)Try again!");
-                    }
-                }
+                int userInputGuess = getUserInput(input, "You guess(" + chance + " chances remaining): ");
                 int[] userGuess = new int[4];
                 getDigit(userGuess, userInputGuess);
-                // reset the HashSet
-                uniqueNum.clear();
-                int[] sysGuess = new int[4];
-                for (int i = 0; i < sysGuess.length; i++) {
-                    int ran;
-                    do {
-                        ran = random.nextInt(10);
-                    } while (!uniqueNum.add(ran));
-                    sysGuess[i] = ran;
-                }
+                int[] sysGuess = generateUniqueGuess(existSysGuess, random);
                 System.out.println(check(userGuess, sysSecret));
                 System.out.println(" ");
                 System.out.print("Computer guess: ");
                 for (int i : sysGuess) {
                     System.out.print(i);
                 }
-                System.out.println("");
+                System.out.println();
                 System.out.println(check(userSecret, sysGuess));
                 System.out.println("-".repeat(3));
                 chance--;
                 if (chance == 0) {
-                    System.out.println("Game over. Draw! Secret code: " + Arrays.toString(sysSecret));
+                    System.out.println("Game over. Draw! System randomly generated secret code: " + Arrays.toString(sysSecret));
                 }
             }
-        }
-        if(mode.equalsIgnoreCase("b")){
-            int[] userSecret = new int[4];
+        }else if(mode.equalsIgnoreCase("b")){
             Set<String> existSysGuess = new HashSet<>();
-            getDigit(userSecret, userInputSecret);
-            System.out.println("-".repeat(3));
             int chance = 7;
             while (chance > 0) {
-                int userInputGuess = 0;
-                String sysGuessStr;
-                while (true) {
-                    System.out.print("You guess(" + chance + " chances remaining): ");
-                    String str2 = input.nextLine().trim();
-                    if (str2.length() == 4) {
-                        try {
-                            userInputGuess = Integer.parseInt(str2);
-                            break;
-                        } catch (NumberFormatException e) {
-                            System.out.println("Invalid input!(4 digit numbers)Try again!");
-                        }
-                    } else {
-                        System.out.println("Invalid length!(4 digit numbers)Try again!");
-                    }
-                }
+                int userInputGuess = getUserInput(input, "You guess(" + chance + " chances remaining: ");
                 int[] userGuess = new int[4];
                 getDigit(userGuess, userInputGuess);
-                // reset the HashSet
-                uniqueNum.clear();
-                int[] sysGuess = new int[4];
-                // Two nested do-while loops are used to avoid duplicated sysGuess.
-                // The first do-while loop can eliminate duplicated single digit in the 4-digit-number.
-                // The second do-while loop can avoid duplicated randomly spawned 4-digit-number.
-                do{
-                    for (int i = 0; i < sysGuess.length; i++) {
-                        int ran;
-                        do {
-                            ran = random.nextInt(10);
-                        } while (!uniqueNum.add(ran));
-                        sysGuess[i] = ran;
-                    }
-                    sysGuessStr = arrayToString(sysGuess);
-                }while(existSysGuess.contains(sysGuessStr));
-                existSysGuess.add(sysGuessStr);
+                int[] sysGuess = generateUniqueGuess(existSysGuess, random);
                 System.out.println(check(userGuess, sysSecret));
                 System.out.println(" ");
                 System.out.print("Computer guess: ");
                 for (int i : sysGuess) {
                     System.out.print(i);
                 }
-                System.out.println("");
+                System.out.println();
                 System.out.println(check(userSecret, sysGuess));
                 System.out.println("-".repeat(3));
                 chance--;
                 if (chance == 0) {
-                    System.out.println("Game over. Draw! Secret code: " + Arrays.toString(sysSecret));
+                    System.out.println("Game over. Draw! System randomly generated secret code: " + Arrays.toString(sysSecret));
                 }
             }
         }
@@ -169,7 +137,7 @@ public class BullsAndCows {
         if(bulls == 4) {
             return "Result: 4 bulls and 0 cows\n" + "You win! :)";
         }
-        return "Result: " + bulls + "bull(s) and " + cows + "cow(s)";
+        return "Result: " + bulls + "bulls and " + cows + "cows";
     }
     public static void getDigit(int[] array, int num){
         array[0] = num / 1000;
