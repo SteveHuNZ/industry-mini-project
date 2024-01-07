@@ -1,19 +1,46 @@
 package ictgradschool.industry.miniproject;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class BullsAndCows {
 
-    public static void start(){
+    public static void start() {
+        List<String> gameHistory = new ArrayList<>();  // used for output record into a txt file.
+        int turnNumber = 0;
+
+        Scanner input = new Scanner(System.in);
+        System.out.println("Enter 1 to guess manually, or 2 to use a file for guesses:");
+        int choice = input.nextInt();
+        input.nextLine(); // Clear buffer
+
+        List<String> fileGuesses = new ArrayList<>();
+        if (choice == 2) {
+            System.out.println("Enter the filename:");
+            String filename = input.nextLine();
+            try {
+                Scanner fileScanner = new Scanner(new File(filename));
+                while (fileScanner.hasNextLine()) {
+                    fileGuesses.add(fileScanner.nextLine().trim());
+                }
+                fileScanner.close();
+            } catch (FileNotFoundException e) {
+                System.out.println("File not found.");
+                return;
+            }
+        }
+
+
         // trying to get the possible list which contains unique digit numbers from 1000 to 9999;
+        Set<String> existSysGuess = new HashSet<>();
         Set<Integer> uniqueNumberSet = generateUniqueDigitNumbers();  // Here we use HashSet is because hashSet can only add unique elements.
         ArrayList<Integer> uniqueNumberList = new ArrayList<>(uniqueNumberSet); // Here we use ArrayList is because it supports us to sort the elements in ascending order.
-
         uniqueNumberList.sort(Integer::compareTo);
         // create system secret code,
         Random random = new Random();
         int[] sysSecret = new int[4];
         Set<Integer> uniqueNum = new HashSet<>();
-        // HashSet can only add unique data;
+        // HashSet can only add unique elements;
         for(int i = 0; i < sysSecret.length; i++){
             int ran;
             do{
@@ -23,35 +50,78 @@ public class BullsAndCows {
             // continue the loop and keep passing random generated number to variable "ran";
             sysSecret[i] = ran;
         }
-        Scanner input = new Scanner(System.in);
-        System.out.println("Please select your opponent. **Select letters to switch the difficulty**");
-        System.out.print("(A.easy AI / B.medium AI / C. hard AI ): ");
-        String mode = input.nextLine().trim();
+        String mode;
+        while(true) {
+            System.out.println("Please select your opponent. **Select letters to switch the difficulty**");
+            System.out.print("(A.easy AI / B.medium AI / C. hard AI ): ");
+            mode = input.nextLine().trim();
+            if (!(mode.equalsIgnoreCase("A") || mode.equalsIgnoreCase("B") || mode.equalsIgnoreCase("C"))) {
+                System.out.println("Invalid selection!");
+            }else{
+                break;
+            }
+        }
         int userInputSecret = getUserInput(input, "Please enter your secret code: ");
         int[] userSecret = new int[4];
         getDigit(userSecret, userInputSecret);
         System.out.println("-".repeat(3));
+        int guessIndex = 0;
 
 
-        if(mode.equalsIgnoreCase("a")) {
-            Set<String> existSysGuess = new HashSet<>();
+        if(mode.equalsIgnoreCase("A")) {
             // verifying sanity for input.
             int chance = 7;
+            Out:
             while (chance > 0) {
-                int userInputGuess = getUserInput(input, "You guess(" + chance + " chances remaining): ");
+                int userInputGuess;
+                if(choice == 1){
+                    userInputGuess = getUserInput(input, "You guess(" + chance + " chances remaining): ");
+                }else{
+                    if (guessIndex < fileGuesses.size()) {
+                        userInputGuess = Integer.parseInt(fileGuesses.get(guessIndex));
+                        System.out.println("You guess(" + chance + " chances remaining): " + userInputGuess);
+                        guessIndex++;
+
+                    } else {
+                        System.out.println("No more guesses in file. Switching to manual mode. " + (7- fileGuesses.size()) + " attempts required.");
+                        for (int i = fileGuesses.size(); i < 7; i++) {
+                            userInputGuess = getUserInput(input, "You guess(" + (7 - i) + " chances remaining): ");
+                            int[] userGuess = new int[4];
+                            getDigit(userGuess, userInputGuess);
+                            int[] sysGuess = generateUniqueGuess(existSysGuess, random);
+                            int[] result = check(userGuess, sysSecret);
+                            System.out.println("Result: " + result[0] + " bulls and " + result[1] + " cows");
+                            if (result[0] == 4) {
+                                System.out.println("You win! :) Secret code: " + Arrays.toString(sysSecret));
+                                gameHistory.add("You win!!! :) ");
+                                break;  // Break loop. Game over.
+                            }
+                            System.out.println(" ");
+                            System.out.print("Computer guess: ");
+                            for (int j : sysGuess) {
+                                System.out.print(j);
+                            }
+                            System.out.println();
+                            int[] sysResult = check(userSecret, sysGuess);
+                            System.out.println("Computer's Result: " + sysResult[0] + " bulls and " + sysResult[1] + " cows");
+                            if (sysResult[0] == 4) {
+                                System.out.println("Computer wins! Secret code: " + Arrays.toString(sysSecret));
+                                gameHistory.add("Computer win!!! :) ");
+                                break Out;
+                            }
+                            System.out.println("-".repeat(3));
+                        }
+                        break;
+                    }
+                }
                 int[] userGuess = new int[4];
                 getDigit(userGuess, userInputGuess);
                 int[] sysGuess = generateUniqueGuess(existSysGuess, random);
-                /*
-                System.out.println(check(userGuess, sysSecret));
-                    if(bulls == 4) {
-                return "Result: 4 bulls and 0 cows\n" + "You win! :)";
-                return "Result: " + bulls + "bulls and " + cows + "cows";
-                 */
                 int[] result = check(userGuess, sysSecret);
                 System.out.println("Result: " + result[0] + " bulls and " + result[1] + " cows");
                 if (result[0] == 4) {
                     System.out.println("You win! :) Secret code: " + Arrays.toString(sysSecret));
+                    gameHistory.add("You win!!! :) ");
                     break;  // Break loop. Game over.
                 }
                 System.out.println(" ");
@@ -62,21 +132,66 @@ public class BullsAndCows {
                 System.out.println();
                 int[] sysResult = check(userSecret, sysGuess);
                 System.out.println("Computer's Result: " + sysResult[0] + " bulls and " + sysResult[1] + " cows");
+                gameHistory.add("You guessed " + userInputGuess + ", scoring: " + result[0] + " bulls and " + result[1] + " cows\n" +
+                    "Computer guessed " + Arrays.toString(sysGuess) + ", scoring: " + sysResult[0] + " bulls and " + sysResult[1] + " cows");
                 if (sysResult[0] == 4) {
                     System.out.println("Computer wins! Secret code: " + Arrays.toString(sysSecret));
+                    gameHistory.add("Computer win!!! :) ");
                     break;
                 }
+
+
                 System.out.println("-".repeat(3));
                 chance--;
                 if (chance == 0) {
                     System.out.println("Game over. Draw! Secret code: " + Arrays.toString(sysSecret));
                 }
             }
-        }else if(mode.equalsIgnoreCase("b")){
-            Set<String> existSysGuess = new HashSet<>();
+
+        }else if(mode.equalsIgnoreCase("B")){
             int chance = 7;
+            Out:
             while (chance > 0) {
-                int userInputGuess = getUserInput(input, "You guess(" + chance + " chances remaining): ");
+                int userInputGuess;
+                if(choice == 1){
+                    userInputGuess = getUserInput(input, "You guess(" + chance + " chances remaining): ");
+                }else{
+                    if (guessIndex < fileGuesses.size()) {
+                        userInputGuess = Integer.parseInt(fileGuesses.get(guessIndex));
+                        System.out.println("You guess(" + chance + " chances remaining): " + userInputGuess);
+                        guessIndex++;
+                    } else {
+                        System.out.println("No more guesses in file. Switching to manual mode. " + (7- fileGuesses.size()) + " attempts required.");
+                        for (int i = fileGuesses.size(); i < 7; i++) {
+                            userInputGuess = getUserInput(input, "You guess(" + (7- i) + " chances remaining): ");
+                            int[] userGuess = new int[4];
+                            getDigit(userGuess, userInputGuess);
+                            int[] sysGuess = generateUniqueGuess(existSysGuess, random);
+                            int[] result = check(userGuess, sysSecret);
+                            System.out.println("Result: " + result[0] + " bulls and " + result[1] + " cows");
+                            if (result[0] == 4) {
+                                System.out.println("You win! :) Secret code: " + Arrays.toString(sysSecret));
+                                gameHistory.add("you win!!! :) ");
+                                break;  // Break loop. Game over.
+                            }
+                            System.out.println(" ");
+                            System.out.print("Computer guess: ");
+                            for (int j : sysGuess) {
+                                System.out.print(j);
+                            }
+                            System.out.println();
+                            int[] sysResult = check(userSecret, sysGuess);
+                            System.out.println("Computer's Result: " + sysResult[0] + " bulls and " + sysResult[1] + " cows");
+                            if (sysResult[0] == 4) {
+                                System.out.println("Computer wins! Secret code: " + Arrays.toString(sysSecret));
+                                gameHistory.add("Computer win!!! :) ");
+                                break Out;
+                            }
+                            System.out.println("-".repeat(3));
+                        }
+                        break;
+                    }
+                }
                 int[] userGuess = new int[4];
                 getDigit(userGuess, userInputGuess);
                 int[] sysGuess = generateUniqueGuess(existSysGuess, random);
@@ -84,6 +199,7 @@ public class BullsAndCows {
                 System.out.println("Result: " + result[0] + " bulls and " + result[1] + " cows");
                 if (result[0] == 4) {
                     System.out.println("You win! :) Secret code: " + Arrays.toString(sysSecret));
+                    gameHistory.add("You win!!! :) ");
                     break;  // Break loop. Game over.
                 }
                 System.out.println(" ");
@@ -94,8 +210,11 @@ public class BullsAndCows {
                 System.out.println();
                 int[] sysResult = check(userSecret, sysGuess);
                 System.out.println("Computer's Result: " + sysResult[0] + " bulls and " + sysResult[1] + " cows");
+                gameHistory.add("You guessed " + userInputGuess + ", scoring: " + result[0] + " bulls and " + result[1] + " cows\n" +
+                    "Computer guessed " + Arrays.toString(sysGuess) + ", scoring: " + sysResult[0] + " bulls and " + sysResult[1] + " cows");
                 if (sysResult[0] == 4) {
                     System.out.println("Computer wins! Secret code: " + Arrays.toString(sysSecret));
+                    gameHistory.add("Computer win!!! :) ");
                     break;
                 }
                 System.out.println("-".repeat(3));
@@ -104,58 +223,160 @@ public class BullsAndCows {
                     System.out.println("Game over. Draw! System randomly generated secret code: " + Arrays.toString(sysSecret));
                 }
             }
-        }else if(mode.equalsIgnoreCase("c")){
+
+        }else if(mode.equalsIgnoreCase("C")){
             // randomly generate a number in uniqueNumberList as the first sysGuess;
-            int randomIndex = random.nextInt(uniqueNumberList.size());
+            int randomIndex;
+            // possibleGuess will change dynamically according to each iteration.
+            List<Integer> possibleGuess = new ArrayList<>(uniqueNumberList);
             int chance = 7;
             Out:
             while(chance > 0){
-                int userInputGuess = getUserInput(input, "You guess(" + chance + " chances remaining): ");
+                int userInputGuess;
+                if(choice == 1){
+                    userInputGuess = getUserInput(input, "You guess(" + chance + " chances remaining): ");
+                }else{
+                    if (guessIndex < fileGuesses.size()) {
+                        userInputGuess = Integer.parseInt(fileGuesses.get(guessIndex));
+                        System.out.println("You guess(" + chance + " chances remaining): " + userInputGuess);
+                        guessIndex++;
+                    } else {
+                        System.out.println("No more guesses in file. Switching to manual mode. " + (7- fileGuesses.size()) + " attempts required.");
+                        for (int i = fileGuesses.size(); i < 7; i++) {
+                            userInputGuess = getUserInput(input, "You guess(" + (7- i) + " chances remaining): ");
+                            int[] userGuess = new int[4];
+                            getDigit(userGuess, userInputGuess);
+                            int[] result = check(userGuess, sysSecret);
+                            System.out.println("Result: " + result[0] + " bulls and " + result[1] + " cows");
+                            if (result[0] == 4) {
+                                System.out.println("You win! :) Secret code: " + Arrays.toString(sysSecret));
+                                gameHistory.add("You win!!! :) ");
+                                break Out;  // Break loop. Game over.
+                            }
+                            System.out.println(" ");
+
+                            randomIndex = random.nextInt(possibleGuess.size());  // generate new randomIndex
+                            int sysGuessNumber = possibleGuess.get(randomIndex);
+                            System.out.print("Computer guess: " + possibleGuess.get(randomIndex));
+                            System.out.println();
+                            int[] sysGuess = new int[4];
+                            getDigit(sysGuess, sysGuessNumber);
+                            int[] sysResult = check(userSecret, sysGuess);
+                            System.out.println("Computer's Result: " + sysResult[0] + " bulls and " + sysResult[1] + " cows");
+                            gameHistory.add("You guessed " + userInputGuess + ", scoring: " + result[0] + " bulls and " + result[1] + " cows\n" +
+                                "Computer guessed " + Arrays.toString(sysGuess) + ", scoring: " + sysResult[0] + " bulls and " + sysResult[1] + " cows");
+                            if (sysResult[0] == 4) {
+                                System.out.println("Computer wins! secret code: " + Arrays.toString(sysSecret));
+                                gameHistory.add("Computer win!!! :) ");
+                                break Out;
+                            }
+                            Iterator<Integer> iterator = possibleGuess.iterator();
+                            // hasNext() is true means there still are elements in this list.
+                            while (iterator.hasNext()) {
+                                int nextGuess = iterator.next();
+                                int[] nextGuessArray = new int[4];
+                                getDigit(nextGuessArray, nextGuess);
+                                int[] nextResult = check(sysGuess, nextGuessArray);
+
+                                if (!(nextResult[0] == sysResult[0] && nextResult[1] == sysResult[1])) {
+                                    iterator.remove();
+                                }
+                            }
+                        }
+                        break;
+                    }
+
+                }
                 int[] userGuess = new int[4];
                 getDigit(userGuess, userInputGuess);
-                int sysGuessNumber = uniqueNumberList.get(randomIndex);
                 int[] result = check(userGuess, sysSecret);
                 System.out.println("Result: " + result[0] + " bulls and " + result[1] + " cows");
                 if (result[0] == 4) {
                     System.out.println("You win! :) Secret code: " + Arrays.toString(sysSecret));
+                    gameHistory.add("You win!!! :) ");
                     break;  // Break loop. Game over.
                 }
                 System.out.println(" ");
-                System.out.print("Computer guess: " + uniqueNumberList.get(randomIndex));
+
+                randomIndex = random.nextInt(possibleGuess.size());  // generate new randomIndex
+                int sysGuessNumber = possibleGuess.get(randomIndex);
+                System.out.print("Computer guess: " + possibleGuess.get(randomIndex));
                 System.out.println();
                 int[] sysGuess = new int[4];
                 getDigit(sysGuess, sysGuessNumber);
                 int[] sysResult = check(userSecret, sysGuess);
                 System.out.println("Computer's Result: " + sysResult[0] + " bulls and " + sysResult[1] + " cows");
+                gameHistory.add("You guessed " + userInputGuess + ", scoring: " + result[0] + " bulls and " + result[1] + " cows\n" +
+                    "Computer guessed " + Arrays.toString(sysGuess) + ", scoring: " + sysResult[0] + " bulls and " + sysResult[1] + " cows");
                 if (sysResult[0] == 4) {
                     System.out.println("Computer wins! secret code: " + Arrays.toString(sysSecret));
+                    gameHistory.add("Computer win!!! :) ");
                     break;
                 }
-                Iterator<Integer> iterator = uniqueNumberList.iterator();
-                // we cannot use keyword "remove" when iterating data. So we have to use "iterator".
-                // iterator is an interface which is used to remove specific element when traversing the array.
-                while (iterator.hasNext()) {  //"hasNext()" is used to check if there are remaining elements in the iterator.
-                    int i = iterator.next();   // "next()" is used to get the next element.
-                    int[] testArray = new int[4];
-                    getDigit(testArray, i);
-                    int[] tempResult = check(sysGuess, testArray);
-                    if (!(tempResult[0] == sysResult[0] && tempResult[1] == sysResult[1])) {
-                        iterator.remove(); // Only the iterator is allowed to remove elements when iterating. Otherwise, some exceptions may occur.
+                // Pruning possibleGuess
+                Iterator<Integer> iterator = possibleGuess.iterator();
+                // hasNext() is true means there still are elements in this list.
+                while (iterator.hasNext()) {
+                    int nextGuess = iterator.next();
+                    int[] nextGuessArray = new int[4];
+                    getDigit(nextGuessArray, nextGuess);
+                    int[] nextResult = check(sysGuess, nextGuessArray);
+
+                    if (!(nextResult[0] == sysResult[0] && nextResult[1] == sysResult[1])) {
+                        iterator.remove();
                     }
-                }if(uniqueNumberList.size() == 1){
-                    System.out.println("Your secret code is: " + uniqueNumberList.get(0));
-                    System.out.println("Computer wins! secret code: " + Arrays.toString(sysSecret));
-                    break Out;
                 }
-
                 System.out.println("-".repeat(3));
-
-                chance --;
+                chance--;
+                if (chance == 0) {
+                    System.out.println("Game over. Draw! System randomly generated secret code: " + Arrays.toString(sysSecret));
+                }
             }
+
         }else{
-            System.out.println("Invalid selections!");
+            System.out.println("Invalid selection!");
+        }
+        saveGameResults(input, Arrays.toString(userSecret), Arrays.toString(sysSecret), gameHistory);
+    }
+
+    public static void saveGameResults(Scanner scanner, String playerCode, String computerCode, List<String> gameHistory) {
+        System.out.print("Do you want to save the game results? (yes/no): ");
+        String saveResponse = scanner.nextLine();
+
+        if (saveResponse.equalsIgnoreCase("yes")) {
+            System.out.println("Enter the filename to save results:");
+            String saveFileName = scanner.nextLine();
+
+            try (PrintWriter writer = new PrintWriter(saveFileName, StandardCharsets.UTF_8)) {
+                writer.println("Bulls & Cows game result.");
+                writer.println("Your code: " + playerCode);
+                writer.println("Computer code: " + computerCode);
+                writer.println("---");
+                for (int i = 0; i < gameHistory.size(); i++) {
+                    String historyEntry = gameHistory.get(i);
+                    writer.println("Turn " + (i + 1) + ":");
+                    writer.println(historyEntry);
+                    // Check if this history entry indicates the computer won
+                    if (historyEntry.contains("scoring: 4 bulls")) {
+                        // If the computer wins, print the win message
+                        writer.println("Computer win!!! :)");
+                        // Check if this is the last turn; if not, add the separator
+                        if (i < gameHistory.size() - 1) {
+                            writer.println("---");
+                        }
+                        break; // No more turns need to be printed, exit the loop
+                    }
+                    // If the game is continuing, print the separator
+                    writer.println("-".repeat(3));
+                }
+            } catch (IOException e) {
+                System.out.println("An error occurred while saving: " + e.getMessage());
+            }
         }
     }
+
+
+
     public static int[] generateUniqueGuess(Set<String> existSysGuess, Random random){
         Set<Integer> uniqueNum = new HashSet<>();
         int[] sysGuess;
@@ -180,7 +401,7 @@ public class BullsAndCows {
     public static int getUserInput(Scanner input, String prompt){
         int userInput;
         while (true) {
-            System.out.println(prompt);
+            System.out.print(prompt);
             String str2 = input.nextLine().trim();
             if (str2.length() == 4) {
                 try {
@@ -229,7 +450,7 @@ public class BullsAndCows {
         boolean[] digitSeen = new boolean[10];  // check the comments in order.
         // 1. Creating 10 elements aims to use the index(from 0 - 9) to check all the 4 digits of the passed number is unique.
         // 2. When we create a boolean array, each of its elements is "false" by default.
-        int currentNum = number; // 3. Here we create a new integer variable is trying to process the data without change the original parameter.
+        int currentNum = number; // 3. Here we create a new integer variable is trying to process the number without change the original parameter.
         while(currentNum > 0){   // 4. later on, we need to divide currentNum with 10 to access its last digit through 4 iteration.
             // So we have to set a boundary that when the currentNum is bigger than 0, we keep processing it. otherwise, break the loop.
             int digit = currentNum % 10;    // To get the last digit;
