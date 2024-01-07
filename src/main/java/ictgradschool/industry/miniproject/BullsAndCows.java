@@ -440,12 +440,12 @@ public class BullsAndCows {
         }
         return new int[] { bulls, cows } ;
     }
-    public static void getDigit(int[] array, int num){
-        array[0] = num / 1000;
-        array[1] = num / 100 % 10;
-        array[2] = num / 10 % 10;
-        array[3] = num % 10;
-    }
+//    public static void getDigit(int[] array, int num){
+//        array[0] = num / 1000;
+//        array[1] = num / 100 % 10;
+//        array[2] = num / 10 % 10;
+//        array[3] = num % 10;
+//    }
     public static boolean isUniqueDigit(int number){
         boolean[] digitSeen = new boolean[10];  // check the comments in order.
         // 1. Creating 10 elements aims to use the index(from 0 - 9) to check all the 4 digits of the passed number is unique.
