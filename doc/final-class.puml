@@ -1,0 +1,53 @@
+'@startuml
+'
+'
+'class Player {
+'    + secretCode: int[]
+'    + toString() : String
+'}
+'
+'class HumanPlayer {
+'}
+'
+'class Game {
+'    + player1: humanPlayer
+'    + player2: AIPlayer
+'}
+'
+'
+'class AIPlayer{
+'EasyAI
+'MediumAI
+'HardAI
+'
+'}
+'
+'class EasyAI{
+'generateUniqueDigitNumbers();
+'isUniqueDigit();
+'getDigit();
+'check();
+'
+'}
+'
+'Game -- Player
+'
+'Player <|-- HumanPlayer
+'Player <|-- AIPlayer
+'AIPlayer <|-- EasyAI
+'AIPlayer <|-- MediumAI
+'AIPlayer <|-- HardAI
+'
+'
+'
+'
+
+
+
+
+
+
+
+
+
+@enduml
