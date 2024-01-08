@@ -1,46 +1,86 @@
 '@startuml
-'
-'
+
+
 'class Player {
 '    + secretCode: int[]
 '    + toString() : String
 '}
+
+class HumanPlayer {
+}
+
+class Game {
+    + player1: humanPlayer
+    + player2: AIPlayer
+}
+
+
+class AIPlayer{
+EasyAI
+MediumAI
+HardAI
+
+}
+
+class EasyAI{
+generateUniqueDigitNumbers();
+isUniqueDigit();
+getDigit();
+check();
+
+}
+
+
+
+
+Game -- commonMethod
+
+user<|--commonMethod
+computer<|--commonMethod
 '
-'class HumanPlayer {
-'}
-'
-'class Game {
-'    + player1: humanPlayer
-'    + player2: AIPlayer
-'}
-'
-'
-'class AIPlayer{
-'EasyAI
-'MediumAI
-'HardAI
-'
-'}
-'
-'class EasyAI{
-'generateUniqueDigitNumbers();
-'isUniqueDigit();
-'getDigit();
-'check();
-'
-'}
-'
-'Game -- Player
-'
-'Player <|-- HumanPlayer
-'Player <|-- AIPlayer
-'AIPlayer <|-- EasyAI
-'AIPlayer <|-- MediumAI
-'AIPlayer <|-- HardAI
-'
-'
-'
-'
+ HumanPlayer <|-- user
+computer <|-- AIPlayer
+AIPlayer <|-- EasyAI
+AIPlayer <|-- MediumAI
+AIPlayer <|-- HardAI
+saveToFile <|-- computer
+saveToFile   <|--HumanPlayer
+computer<|--readFromFile
+
+class commonMethod{
++ convertNumberToDigit();
++check();
++isUniqueDigit();
+}
+ class user{
+ -init[]userSecret;
+ -init[]userGuess;
+ -int chance;
+ -int guessIndex;
++gueUserInput();
+ }
+ class computer{
+ -int[] sysSecret;
+ -int[] sysGuess;
+ -List<Integer> uniqueNumberList;
+ -int guessIndex;
+ -int nextGuess;
+ -int[] nextGuessArray;
+ +generateUniqueDigitNumbers();
+ +generateUniqueGuess();
+
+
+
+ }
+
+ class readFromFile {
+ -list<string>fileGuesses;
+ }
+ class saveToFile{
+ list<String> gameHistory;
+ +saveGameResults[];
+
+ }
 
 
 
